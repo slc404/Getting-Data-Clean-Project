@@ -1,7 +1,9 @@
 # Getting-Data-Clean-Project
 Files:
 Readme – This file
+
 Codebook – describing variables and data manipulation
+
 run_analysis.R  - R code
 
 Description of the DATA:
@@ -20,5 +22,7 @@ The following was conducted on the dataset:
 
 
 Libraries Used:
+
 library(readr)
+
 library(dplyr) 
