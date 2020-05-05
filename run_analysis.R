@@ -1,61 +1,55 @@
-########
-#1: Import data
+
+#0: Pre Steps
+
+#Obtain feature and activity 
 library(readr)
 library(dplyr)
 setwd("C:/Users/slc404/OneDrive - Sherwin-Williams/Rprojects/Coursera/Getting Data Clean/week 4/Project/")
-X_test <- read_table2("data/UCI HAR Dataset/test/X_test.txt", col_names = FALSE)
-X_train <- read_table2("data/UCI HAR Dataset/train/X_train.txt", col_names = FALSE)
-subject_test <- read_table2("data/UCI HAR Dataset/test/subject_test.txt", col_names = FALSE)
-subject_train <- read_table2("data/UCI HAR Dataset/train/subject_train.txt", col_names = FALSE)
 features <- read_table2("data/UCI HAR Dataset/features.txt", col_names = FALSE)
 activity_label <- read_table2("data/UCI HAR Dataset/activity_labels.txt", col_names = FALSE)
-Y_test <- read_table2("data/UCI HAR Dataset/test/Y_test.txt", col_names = FALSE)
-Y_train <- read_table2("data/UCI HAR Dataset/train/Y_train.txt", col_names = FALSE)
 
-#2: Add names to the columns
-colnames(X_test)=features$X2
-colnames(X_train)=features$X2
+#Obtain train
+X_train <- read_table("data/UCI HAR Dataset/train/X_train.txt", col_names = features$X2)
+subject_train <- read_table("data/UCI HAR Dataset/train/subject_train.txt", col_names = "subject")
+Y_train <- read_table("data/UCI HAR Dataset/train/Y_train.txt", col_names = "activity")
+train<-cbind(Y_train,subject_train,X_train)
 
-#3: Add subject and activity to column
-#add activity lables for test
-Y_test$X1[Y_test$X1==1]<-"Walking"
-Y_test$X1[Y_test$X1==2]<-"Walking_upstairs"
-Y_test$X1[Y_test$X1==3]<-"Walking_downstairs"
-Y_test$X1[Y_test$X1==4]<-"Sitting"
-Y_test$X1[Y_test$X1==5]<-"Standing"
-Y_test$X1[Y_test$X1==6]<-"Laying"
+#Obtain Test
+X_test <- read_table("data/UCI HAR Dataset/test/X_test.txt", col_names = features$X2)
+subject_test <- read_table("data/UCI HAR Dataset/test/subject_test.txt", col_names = "subject")
+Y_test <- read_table("data/UCI HAR Dataset/test/Y_test.txt", col_names = "activity")
+test<-cbind(Y_test,subject_test,X_test)
 
-#add activity lables for train
-Y_train$X1[Y_train$X1==1]<-"Walking"
-Y_train$X1[Y_train$X1==2]<-"Walking_upstairs"
-Y_train$X1[Y_train$X1==3]<-"Walking_downstairs"
-Y_train$X1[Y_train$X1==4]<-"Sitting"
-Y_train$X1[Y_train$X1==5]<-"Standing"
-Y_train$X1[Y_train$X1==6]<-"Laying"
+#1.	Merges the training and the test sets to create one data set.
+data<-rbind(test, train)
 
+#2.	Extracts only the measurements on the mean and standard deviation for each measurement.
+#select the mean
+data_mean <- data %>% select(subject, contains("mean"))
+#select the std
+data_std <- data %>% select(subject, contains("std"))
+#combined columns  
+data_mean_std <- cbind(data$activity, data_mean, data_std) 
+names(data_mean_std)[1] <- "activity" #rename activity column
 
-#Add names to the columns for test
-colnames(Y_test)=c("activity") 
-colnames(subject_test)=c("subject")
+# 3.	Uses descriptive activity names to name the activities in the data set
+data_mean_std$activity[data_mean_std$activity==1]<-"Walking"
+data_mean_std$activity[data_mean_std$activity==2]<-"Walking_upstairs"
+data_mean_std$activity[data_mean_std$activity==3]<-"Walking_downstairs"
+data_mean_std$activity[data_mean_std$activity==4]<-"Sitting"
+data_mean_std$activity[data_mean_std$activity==5]<-"Standing"
+data_mean_std$activity[data_mean_std$activity==6]<-"Laying"
 
-#Add names to the columns for train
-colnames(Y_train)=c("activity") 
-colnames(subject_train)=c("subject")
+#4.	Appropriately labels the data set with descriptive variable names.
+data_clean_name<-data_mean_std
+#create valid names
+valid_column_name <- make.names(names=names(data_mean_std), unique=TRUE, allow_ = TRUE)
+names(data_mean_std) <- valid_column_name
+data_clean_name<-data_mean_std
 
+#5.	From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+final <- data_clean_name%>%
+  group_by(subject,activity)%>%
+  summarise_all(funs(mean))
 
-#Add subject to first column and activity to second column
-X_test_com<-cbind(subject_test, Y_test, X_test) #test
-X_train_com<-cbind(subject_train, Y_train, X_train) #train
-
-#4 Combines test and train data set
-combine_data<-rbind(X_test_com, X_train_com)
-
-#5 Second dataset that average for each variable and subject
-#mean for each subject
-new_df_subject<-aggregate(combine_data, FUN=mean, by=list(combine_data$subject))
-#mean for each activity
-new_df_activity<-aggregate(combine_data, FUN=mean, by=list(combine_data$activity))
-#new dataframe with subject and activity
-new_tidy_data<-rbind(new_df_activity, new_df_subject)
-
-write.table(new_tidy_data, file ="new_tidy_data.txt" ,row.names = FALSE, )
+write.table(data_clean_name, file ="data_clean_name.txt" ,row.names = FALSE, )
