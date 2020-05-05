@@ -1,12 +1,8 @@
-Codebook
 The following was conducted on the dataset:
 •	Import data
-•	Add names to the columns
-•	Add subject and activity to column
-•	Add activity labels for test and train
-•	Add names to the columns for test and train
-•	Add subject to first column and activity to second column
-•	Combines test and train data set
+•	Merges the training and the test sets to create one data set.
+•	Extracts only the measurements on the mean and standard deviation for each measurement.
+•	Add activity labels 
 •	Created a second dataset that contained both the mean for subject and activity
 
 
@@ -611,3 +607,4 @@ angle(Y,gravityMean)
 angle(Z,gravityMean)
 
  
+
